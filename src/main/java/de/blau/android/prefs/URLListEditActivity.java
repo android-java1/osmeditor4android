@@ -1,0 +1,875 @@
+package de.blau.android.prefs;
+
+import static de.blau.android.contract.Constants.LOG_TAG_LEN;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.ActionMenuView.OnMenuItemClickListener;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.BlendModeColorFilterCompat;
+import androidx.core.graphics.BlendModeCompat;
+import de.blau.android.PostAsyncActionHandler;
+import de.blau.android.R;
+import de.blau.android.contract.Schemes;
+import de.blau.android.dialogs.Progress;
+import de.blau.android.exception.OperationFailedException;
+import de.blau.android.presets.PresetIconManager;
+import de.blau.android.presets.PresetParser;
+import de.blau.android.util.ExecutorTask;
+import de.blau.android.util.ScreenMessage;
+import de.blau.android.util.SelectFile;
+import de.blau.android.util.ThemeUtils;
+
+/**
+ * This activity allows the user to edit a list of URLs. Each entry consists of a unique ID, a name and a URL. The user
+ * can add new entries via a button and edit/delete existing entries by long-pressing them. Entries with
+ * {@link #LISTITEM_ID_DEFAULT} as their ID cannot be edited/deleted by the user.
+ * 
+ * 
+ * You will probably want to override {@link #onItemClicked(AdapterView, View, int, long)},
+ * {@link #onItemCreated(ListEditItem)}, {@link #onItemEdited(ListEditItem)} and {@link #onItemDeleted(ListEditItem)}.
+ * 
+ * @author Jan
+ *
+ */
+public abstract class URLListEditActivity extends ListActivity
+        implements OnMenuItemClickListener, android.view.MenuItem.OnMenuItemClickListener, OnItemClickListener {
+
+    private static final int    TAG_LEN   = Math.min(LOG_TAG_LEN, URLListEditActivity.class.getSimpleName().length());
+    private static final String DEBUG_TAG = URLListEditActivity.class.getSimpleName().substring(0, TAG_LEN);
+
+    static final String ACTION_NEW   = "new";
+    static final String EXTRA_NAME   = "name";
+    static final String EXTRA_VALUE  = "value";
+    static final String EXTRA_ITEM   = "item";
+    static final String EXTRA_ENABLE = "enable";
+
+    static final int ERROR_COLOR = R.color.ccc_red;
+    static final int VALID_COLOR = R.color.black;
+
+    static final int MENUITEM_EDIT              = 0;
+    static final int MENUITEM_DELETE            = 1;
+    static final int MENUITEM_ADDITIONAL_OFFSET = 1000;
+
+    protected static final int RESULT_TOTAL_FAILURE       = 0;
+    protected static final int RESULT_TOTAL_SUCCESS       = 1;
+    protected static final int RESULT_IMAGE_FAILURE       = 2;
+    protected static final int RESULT_PRESET_NOT_PARSABLE = 3; // NOSONAR currently unused
+    protected static final int RESULT_DOWNLOAD_CANCELED   = 4;
+
+    static final String      LISTITEM_ID_DEFAULT = AdvancedPrefDatabase.ID_DEFAULT;
+    final List<ListEditItem> items;
+
+    ListEditItem selectedItem = null;
+
+    private boolean                       addingViaIntent     = false;
+    final LinkedHashMap<Integer, Integer> additionalMenuItems = new LinkedHashMap<>();
+
+    /**
+     * Construct a new Activity with empty contents
+     */
+    URLListEditActivity() {
+        this(new ArrayList<>());
+    }
+
+    /**
+     * Construct a new Activity displaying items
+     * 
+     * @param items a List of ListEditItems to display
+     */
+    protected URLListEditActivity(@NonNull List<ListEditItem> items) {
+        super();
+        this.items = items;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        Preferences prefs = new Preferences(this);
+        if (prefs.lightThemeEnabled()) {
+            setTheme(R.style.Theme_customLight);
+        }
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.list_activity);
+
+        FloatingActionButton add = (FloatingActionButton) findViewById(R.id.add);
+        if (add != null) {
+            add.setOnClickListener(v -> {
+                Log.d(DEBUG_TAG, "button clicked");
+                itemEditDialog(null);
+            });
+            add.show();
+            add.setContentDescription(getString(getAddTextResId()));
+        }
+
+        getListView().setOnItemClickListener(this);
+        getListView().setOnCreateContextMenuListener(this);
+
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+    }
+
+    /**
+     * Common dialog setup code
+     * 
+     * @param builder the dialog builder
+     * @param view the view used by the dialog
+     */
+    protected void setViewAndButtons(@NonNull final AlertDialog.Builder builder, @NonNull final View view) {
+        builder.setView(view);
+        builder.setPositiveButton(R.string.okay, (dialog, which) -> {
+            // Do nothing here because we override this button later to change the close behaviour.
+            // However, we still need this because on older versions of Android unless we
+            // pass a handler the button doesn't get instantiated
+        });
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
+            // leave empty
+        });
+        builder.setOnCancelListener(dialog -> {
+            if (isAddingViaIntent()) {
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        addingViaIntent = getIntent() != null && ACTION_NEW.equals(getIntent().getAction());
+        if (isAddingViaIntent()) {
+            itemEditDialog(null);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(DEBUG_TAG, "onResume");
+        items.clear();
+        onLoadList(items);
+        updateAdapter();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (!super.onOptionsItemSelected(item)) {
+            if (item.getItemId() == android.R.id.home) {
+                finish();
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /** refreshes the data adapter (list content) */
+    void updateAdapter() {
+        setListAdapter(new ListEditAdapter(this, items));
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+        Object item = parent.getItemAtPosition(pos);
+        if (item == null) {
+            return;
+        }
+        Log.d(DEBUG_TAG, "Item clicked");
+        ListItem listItem = (ListItem) view;
+        listItem.setChecked(!listItem.isChecked());
+        onItemClicked((ListEditItem) item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        selectedItem = (ListEditItem) getListView().getItemAtPosition(info.position);
+        if (selectedItem != null && !selectedItem.id.equals(LISTITEM_ID_DEFAULT)) {
+            Resources r = getResources();
+            menu.add(Menu.NONE, MENUITEM_EDIT, Menu.NONE, r.getString(R.string.edit)).setOnMenuItemClickListener(this);
+            menu.add(Menu.NONE, MENUITEM_DELETE, Menu.NONE, r.getString(R.string.delete)).setOnMenuItemClickListener(this);
+            for (Entry<Integer, Integer> entry : additionalMenuItems.entrySet()) {
+                menu.add(Menu.NONE, entry.getKey() + MENUITEM_ADDITIONAL_OFFSET, Menu.NONE, r.getString(entry.getValue())).setOnMenuItemClickListener(this);
+            }
+        }
+    }
+
+    /**
+     * Handle a menu item click
+     * 
+     * @param itemId the id of the item that was clicked
+     * @return if the selection was processed
+     */
+    private boolean onMenuItemClick(int itemId) {
+        if (itemId >= MENUITEM_ADDITIONAL_OFFSET) {
+            onAdditionalMenuItemClick(itemId - MENUITEM_ADDITIONAL_OFFSET, selectedItem);
+        }
+        switch (itemId) {
+        case MENUITEM_EDIT:
+            itemEditDialog(selectedItem);
+            updateAdapter();
+            break;
+        case MENUITEM_DELETE:
+            deleteItem(selectedItem);
+            break;
+        default:
+            Log.w(DEBUG_TAG, "Unknown menu item " + itemId);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem menuitem) {
+        return onMenuItemClick(menuitem.getItemId());
+    }
+
+    /**
+     * Add an additional menu item. Override {@link #onAdditionalMenuItemClick(int, ListEditItem)} to handle it.
+     * 
+     * @param menuId a non-negative integer by which you will recognize the menu item
+     * @param stringId the resource id of the string that will be the name of the menu item
+     */
+    void addAdditionalContextMenuItem(int menuId, int stringId) {
+        additionalMenuItems.put(menuId, stringId);
+    }
+
+    /**
+     * Override this to handle additional menu item clicks. Use {@link #addAdditionalContextMenuItem(int, int)} to add
+     * menu items.
+     * 
+     * @param menuItemId the menu item ID supplied when creating the additional menu
+     * @param clickedItem the item for which the context menu was opened
+     */
+    void onAdditionalMenuItemClick(int menuItemId, ListEditItem clickedItem) {
+        // default: nothing, override if needed
+    }
+
+    /**
+     * Opens the dialog to edit an item
+     * 
+     * @param item the selected item
+     */
+    abstract void itemEditDialog(@Nullable final ListEditItem item);
+
+    /**
+     * Change the background color of a TextView
+     * 
+     * @param textView the TextView
+     * @param colorRes the color resource id
+     */
+    static void changeBackgroundColor(@Nullable TextView textView, int colorRes) {
+        if (textView != null && textView.getBackground() != null) {
+            textView.getBackground().mutate().setColorFilter(BlendModeColorFilterCompat
+                    .createBlendModeColorFilterCompat(ContextCompat.getColor(textView.getContext(), colorRes), BlendModeCompat.SRC_ATOP));
+        }
+    }
+
+    /**
+     * Called by {@link #itemEditDialog(ListEditItem)} when an item is successfully created
+     * 
+     * @param item the new item
+     */
+    void finishCreateItem(ListEditItem item) {
+        items.add(item);
+        updateAdapter();
+        onItemCreated(item);
+
+        if (canAutoClose()) {
+            sendResultIfApplicable(item);
+        }
+    }
+
+    /**
+     * If this editor {@link #isAddingViaIntent()}, finishes the activity (sending RESULT_OK with the given item)
+     * 
+     * @param item created/edited item to send as result
+     */
+    protected void sendResultIfApplicable(ListEditItem item) {
+        if (isAddingViaIntent()) {
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_ITEM, item);
+            setResult(RESULT_OK, intent);
+            finish();
+        }
+    }
+
+    /**
+     * Override this if you need to keep the dialog open after an intent-initiated edit event (e.g. to finish
+     * downloading preset data). You are responsible for finishing the activity and sending the result if you return
+     * false. You will probably want to use {@link #sendResultIfApplicable(ListEditItem)}
+     * 
+     * @return false to stop the dialog from closing automatically after an intent-initiated edit event
+     */
+    boolean canAutoClose() {
+        return true;
+    }
+
+    /**
+     * Called by {@link #itemEditDialog(ListEditItem)} when an item is successfully edited
+     * 
+     * @param item the new item
+     */
+    void finishEditItem(@NonNull ListEditItem item) {
+        onItemEdited(item);
+        items.clear();
+        onLoadList(items);
+        updateAdapter();
+    }
+
+    /**
+     * Deletes an item
+     * 
+     * @param item the ListEditITem to delete
+     */
+    private void deleteItem(ListEditItem item) {
+        if (items.remove(item)) {
+            onItemDeleted(item);
+            items.clear();
+            onLoadList(items);
+            updateAdapter();
+        }
+    }
+
+    /**
+     * Get the resource id for the "add" text
+     * 
+     * @return the resource id
+     */
+    protected abstract int getAddTextResId();
+
+    /**
+     * Called when the list should be loaded. Override this and fill the list given to you
+     * 
+     * @param items List of ListEditItem
+     */
+    protected abstract void onLoadList(List<ListEditItem> items);
+
+    /**
+     * Called when an item is clicked. Override to handle this event.
+     * 
+     * @param item the created item
+     */
+    protected abstract void onItemClicked(ListEditItem item);
+
+    /**
+     * Called when an item is created. Override to handle this event.
+     * 
+     * @param item the created item
+     */
+    protected abstract void onItemCreated(ListEditItem item);
+
+    /**
+     * Called when an item is edited. Override to handle this event.
+     * 
+     * @param item the new state of the item
+     */
+    protected abstract void onItemEdited(@NonNull ListEditItem item);
+
+    /**
+     * Called when an item is deleted. Override to handle this event.
+     * 
+     * @param item the item that was deleted
+     */
+    protected abstract void onItemDeleted(ListEditItem item);
+
+    /**
+     * 
+     * @author Jan
+     * @author Simon
+     */
+    public static class ListEditItem implements Serializable {
+        private static final long serialVersionUID = 7574708515164503469L;
+        final String              id;
+        String                    name;
+        String                    value;
+        String                    value2;
+        String                    value3;
+        boolean                   boolean0;
+        boolean                   boolean1;
+        boolean                   active;
+        Serializable              object0;
+
+        /**
+         * Construct a new item with a new, random UUID and the given name and value
+         * 
+         * @param name the name
+         * @param value the value
+         */
+        public ListEditItem(@NonNull String name, @NonNull String value) {
+            this(name, value, null, null, false, false, null);
+        }
+
+        /**
+         * Construct a new item with a new, random UUID
+         * 
+         * @param name the name
+         * @param value the value
+         * @param value2 further value 2
+         * @param value3 further value 3
+         * @param boolean0 a boolean
+         * @param boolean1 a 2nd boolean
+         * @param object0 a Serializable object
+         */
+        public ListEditItem(@NonNull String name, @NonNull String value, @Nullable String value2, @Nullable String value3, boolean boolean0, boolean boolean1,
+                Serializable object0) {
+            id = java.util.UUID.randomUUID().toString();
+            this.value = value;
+            this.value2 = value2;
+            this.value3 = value3;
+            this.name = name;
+            this.boolean0 = boolean0;
+            this.boolean1 = boolean1;
+            this.object0 = object0;
+            this.active = false;
+        }
+
+        /**
+         * Create an item with the given id, name and value. You are responsible for keeping the IDs unique!
+         * 
+         * @param id an unique internal id
+         * @param name the name
+         * @param value the value
+         */
+        public ListEditItem(@NonNull String id, @NonNull String name, @NonNull String value) {
+            this(id, name, value, false);
+        }
+
+        /**
+         * Create an item with the given id. You are responsible for keeping the IDs unique!
+         * 
+         * @param id an unique internal id
+         * @param name the name
+         * @param value the value
+         * @param boolean0 a boolean
+         */
+        public ListEditItem(@NonNull String id, @NonNull String name, @NonNull String value, boolean boolean0) {
+            this(id, name, value, boolean0, false);
+        }
+
+        /**
+         * Create an item with the given id. You are responsible for keeping the IDs unique!
+         * 
+         * @param id an unique internal id
+         * @param name the name
+         * @param value the value
+         * @param boolean0 a boolean
+         * @param active true if this entry should be active
+         */
+        public ListEditItem(@NonNull String id, @NonNull String name, @NonNull String value, boolean boolean0, boolean active) {
+            this(id, name, value, null, null, boolean0, active);
+        }
+
+        /**
+         * Create an item with the given id. You are responsible for keeping the IDs unique!
+         * 
+         * @param id an unique internal id
+         * @param name the name
+         * @param value the value
+         * @param value2 further value 2
+         * @param value3 further value 3
+         * @param object0 a Serializable object
+         * @param boolean0 a boolean
+         * @param boolean1 a 2nd boolean
+         * @param active true if this entry should be active
+         */
+        public ListEditItem(@NonNull String id, @NonNull String name, @NonNull String value, @Nullable String value2, @Nullable String value3,
+                @NonNull Serializable object0, boolean boolean0, boolean boolean1, boolean active) {
+            this(id, name, value, value2, value3, boolean0, active);
+            this.object0 = object0;
+            this.boolean1 = boolean1;
+        }
+
+        /**
+         * Create an item with the given id. You are responsible for keeping the IDs unique!
+         * 
+         * @param id an unique internal id
+         * @param name the name
+         * @param value the value
+         * @param value2 further value 2
+         * @param value3 further value 3
+         * @param boolean0 a boolean
+         * @param active true if this entry should be active
+         */
+        public ListEditItem(@NonNull String id, @NonNull String name, @NonNull String value, @Nullable String value2, @Nullable String value3, boolean boolean0,
+                boolean active) {
+            this.id = id;
+            this.value = value;
+            this.value2 = value2;
+            this.value3 = value3;
+            this.name = name;
+            this.boolean0 = boolean0;
+            this.boolean1 = false;
+            this.object0 = null;
+            this.active = active;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
+    /**
+     * This adapter provides two-line item views for the list view
+     * 
+     * @author Jan
+     */
+    private class ListEditAdapter extends ArrayAdapter<ListEditItem> {
+
+        /**
+         * Get an adapter
+         * 
+         * @param context an Android Context
+         * @param items a List of ListEditItems
+         */
+        public ListEditAdapter(@NonNull Context context, @NonNull List<ListEditItem> items) {
+            super(context, R.layout.list_item, items);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+            ListItem v;
+            if (convertView instanceof ListItem) {
+                v = (ListItem) convertView;
+            } else {
+                v = (ListItem) View.inflate(URLListEditActivity.this, R.layout.list_item, null);
+            }
+            setListItemViews(v, getItem(position));
+            v.setMenuButtonListener(view -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    view.showContextMenu(0, 0);
+                } else {
+                    view.getParent().showContextMenuForChild(view);
+                }
+            });
+            return v;
+        }
+    }
+
+    /**
+     * Overrideable method to set files in the list
+     * 
+     * @param v the ListItem
+     * @param listEditItem the ListEditItem holding the values
+     */
+    protected void setListItemViews(ListItem v, ListEditItem listEditItem) {
+        v.setText1(listEditItem.name);
+        v.setText2(listEditItem.value);
+        v.setChecked(listEditItem.active);
+    }
+
+    /**
+     * Get a List of the current items
+     * 
+     * @return a List of ListEditItems
+     */
+    @NonNull
+    public List<ListEditItem> getItems() {
+        return items;
+    }
+
+    /**
+     * @return true if this editor has been called via an intent to add an entry
+     */
+    boolean isAddingViaIntent() {
+        return addingViaIntent;
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        Log.d(DEBUG_TAG, "onActivityResult");
+        super.onActivityResult(requestCode, resultCode, data);
+        if ((requestCode == SelectFile.READ_FILE || requestCode == SelectFile.SAVE_FILE) && resultCode == RESULT_OK) {
+            SelectFile.handleResult(this, requestCode, data);
+        }
+    }
+
+    /**
+     * The items that are displayed in the ListActivity
+     */
+    public static class ListItem extends LinearLayout {
+
+        private TextView    text1;
+        private TextView    text2;
+        private CheckBox    checkBox;
+        private ImageButton menuButton;
+
+        /**
+         * Construct a new empty instance
+         * 
+         * @param context an Android Context
+         */
+        public ListItem(Context context) {
+            super(context);
+        }
+
+        /**
+         * Construct a new empty instance
+         * 
+         * @param context an Android Context
+         * @param attrs an AttributeSet
+         */
+        public ListItem(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        @Override
+        protected void onFinishInflate() {
+            super.onFinishInflate();
+
+            text1 = (TextView) findViewById(R.id.listItemText1);
+            text2 = (TextView) findViewById(R.id.listItemText2);
+            checkBox = (CheckBox) findViewById(R.id.listItemCheckBox);
+            menuButton = (ImageButton) findViewById(R.id.listItemMenu);
+        }
+
+        /**
+         * Set the checked flag
+         * 
+         * @param checked set the checked flag to this value
+         */
+        public void setChecked(boolean checked) {
+            checkBox.setChecked(checked);
+        }
+
+        /**
+         * Get the checked status
+         * 
+         * @return true if checked
+         */
+        public boolean isChecked() {
+            return checkBox.isChecked();
+        }
+
+        /**
+         * Set text 1 to this
+         * 
+         * @param txt the text
+         */
+        public void setText1(@Nullable String txt) {
+            text1.setText(txt);
+        }
+
+        /**
+         * Set text 2 to this
+         * 
+         * @param txt the text
+         */
+        public void setText2(@Nullable String txt) {
+            text2.setText(txt);
+        }
+
+        /**
+         * Set a listener for clicks on the menu button
+         * 
+         * @param listener the OnClickListener
+         */
+        public void setMenuButtonListener(@NonNull OnClickListener listener) {
+            menuButton.setOnClickListener(listener);
+        }
+    }
+
+    /**
+     * Common code for items with a type spinner, name and URL
+     * 
+     * @param layoutRes the layout resource
+     * @param item the item
+     * @param types an array of enums for the spinner
+     * @param selected the selected type or null
+     */
+    protected <E extends Enum<?>> void itemEditDialogWithTypeSpinner(@NonNull final int layoutRes, @Nullable final ListEditItem item, @NonNull E[] types,
+            @Nullable E selected) {
+        final AlertDialog.Builder builder = ThemeUtils.getAlertDialogBuilder(this);
+        final LayoutInflater inflater = ThemeUtils.getLayoutInflater(this);
+        final View mainView = inflater.inflate(layoutRes, null);
+        final TextView editName = (TextView) mainView.findViewById(R.id.listedit_editName);
+        final Spinner typeSpinner = (Spinner) mainView.findViewById(R.id.listedit_type_spinner);
+        final TextView url = (TextView) mainView.findViewById(R.id.listedit_editValue_2);
+
+        ArrayAdapter<E> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeSpinner.setAdapter(adapter);
+
+        if (item != null) {
+            editName.setText(item.name);
+            typeSpinner.setSelection(selected != null ? selected.ordinal() : 0);
+            url.setText(item.value2);
+            if (LISTITEM_ID_DEFAULT.equals(item.id)) {
+                // name and value are not editable
+                editName.setEnabled(false);
+                typeSpinner.setEnabled(false);
+                url.setEnabled(false);
+            }
+        }
+
+        setViewAndButtons(builder, mainView);
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // overriding the handlers
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name = editName.getText().toString();
+            @SuppressWarnings("unchecked")
+            String value = ((E) typeSpinner.getSelectedItem()).name();
+            String value2 = url.getText().toString();
+
+            if (item == null || item.id == null) {
+                // new item
+                if (!"".equals(value)) {
+                    finishCreateItem(new ListEditItem(name, value, !"".equals(value2) ? value2 : null, null, false, false, null));
+                }
+            } else {
+                item.name = name;
+                item.value = value;
+                item.value2 = !"".equals(value2) ? value2 : null;
+                finishEditItem(item);
+            }
+            dialog.dismiss();
+        });
+
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setOnClickListener(v -> dialog.dismiss());
+    }
+
+    /**
+     * Download data (XML, icons) for a certain resource or load it from a file
+     * 
+     * @param activity a URLListEditActivity instance
+     * @param db an AdvancedPrefDatabase instance
+     * @param item the item containing the resource to be downloaded
+     * @param defaultFilename default name to use for imported resources
+     * @param parseForIcons parser the XML for icons, currently only of use for presets
+     */
+    static void retrieveData(@NonNull URLListEditActivity activity, @NonNull AdvancedPrefDatabase db, @NonNull final ListEditItem item, String defaultFilename,
+            boolean parseForIcons, @Nullable PostAsyncActionHandler handler) {
+
+        final File dir = db.getResourceDirectory(item.id);
+        // noinspection ResultOfMethodCallIgnored
+        dir.mkdir();
+        if (!dir.isDirectory()) {
+            throw new OperationFailedException("Could not create directory " + dir.getAbsolutePath());
+        }
+        new ExecutorTask<Void, Integer, Integer>() {
+
+            private boolean localFile;
+            private Uri     uri;
+
+            @Override
+            protected void onPreExecute() {
+                uri = Uri.parse(item.value);
+                final String scheme = uri.getScheme();
+                localFile = Schemes.FILE.equals(scheme) || Schemes.CONTENT.equals(scheme);
+                Progress.showDialog(activity, localFile ? Progress.PROGRESS_RESOURCE_LOAD : Progress.PROGRESS_RESOURCE_DOWNLOAD);
+            }
+
+            @Override
+            protected Integer doInBackground(Void args) {
+                int loadResult = localFile ? XmlConfigurationLoader.load(activity, uri, dir, defaultFilename)
+                        : XmlConfigurationLoader.download(item.value, dir, defaultFilename);
+
+                if (loadResult == XmlConfigurationLoader.DOWNLOADED_ERROR) {
+                    return RESULT_TOTAL_FAILURE;
+                }
+
+                if (!parseForIcons) {
+                    return RESULT_TOTAL_SUCCESS;
+                }
+
+                List<String> urls = PresetParser.parseForURLs(dir);
+
+                boolean allImagesSuccessful = true;
+                for (String url : urls) {
+                    if (isCancelled()) {
+                        return RESULT_DOWNLOAD_CANCELED;
+                    }
+                    allImagesSuccessful &= (XmlConfigurationLoader.download(url, dir,
+                            PresetIconManager.hashPath(url)) == XmlConfigurationLoader.DOWNLOADED_XML);
+                }
+                return allImagesSuccessful ? RESULT_TOTAL_SUCCESS : RESULT_IMAGE_FAILURE;
+            }
+
+            @Override
+            protected void onPostExecute(Integer result) {
+                switch (result) {
+                case RESULT_TOTAL_SUCCESS:
+                case RESULT_IMAGE_FAILURE:
+                    if (result == RESULT_IMAGE_FAILURE) {
+                        msgbox(R.string.preset_download_missing_images);
+                    } else {
+                        ScreenMessage.barInfo(activity, localFile ? R.string.resource_load_successful : R.string.resource_download_successful);
+                    }
+                    if (handler != null) {
+                        handler.onSuccess();
+                    }
+                    activity.sendResultIfApplicable(item);
+                    break;
+                case RESULT_TOTAL_FAILURE:
+                    msgbox(localFile ? R.string.resource_load_failed : R.string.resource_download_failed);
+                    if (handler != null) {
+                        handler.onError(null);
+                    }
+                    break;
+                case RESULT_DOWNLOAD_CANCELED:
+                    break; // do nothing
+                default:
+                    break;
+                }
+                Progress.dismissDialog(activity, localFile ? Progress.PROGRESS_RESOURCE_LOAD : Progress.PROGRESS_RESOURCE_DOWNLOAD);
+            }
+
+            /**
+             * Show a simple message box detailing the download result. The activity will end as soon as the box is
+             * closed.
+             * 
+             * @param msgResID string resource id of message
+             */
+            private void msgbox(int msgResID) {
+                AlertDialog.Builder box = ThemeUtils.getAlertDialogBuilder(activity);
+                box.setMessage(activity.getResources().getString(msgResID));
+                box.setOnCancelListener(dialog -> activity.sendResultIfApplicable(item));
+                box.setPositiveButton(R.string.okay, (dialog, which) -> {
+                    dialog.dismiss();
+                    activity.sendResultIfApplicable(item);
+                });
+                box.show();
+            }
+
+        }.execute();
+    }
+}

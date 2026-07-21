@@ -1,0 +1,188 @@
+package de.blau.android.geocode;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Context;
+import android.text.Spanned;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ListView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog.Builder;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDialog;
+import de.blau.android.R;
+import de.blau.android.geocode.Query.PostQueryHandler;
+import de.blau.android.osm.ViewBox;
+import de.blau.android.prefs.AdvancedPrefDatabase.Geocoder;
+import de.blau.android.prefs.AdvancedPrefDatabase.GeocoderType;
+import de.blau.android.util.ScreenMessage;
+import de.blau.android.util.ThemeUtils;
+import de.blau.android.util.Util;
+import de.blau.android.util.WidestItemArrayAdapter;
+
+/**
+ * Search with nominatim, photon and maybe others
+ * 
+ * @author simon
+ *
+ */
+public class Search {
+    static final String DEBUG_TAG = Search.class.getSimpleName().substring(0, Math.min(23, Search.class.getSimpleName().length()));
+
+    private final AppCompatActivity activity;
+
+    private final SearchItemSelectedCallback callback;
+
+    private final Dialog dialog;
+
+    public static class SearchResult {
+        private double lat;
+        private double lon;
+        String         displayName;
+        private long   osmId = -1L;
+
+        @Override
+        public String toString() {
+            return "lat: " + getLat() + " lon: " + getLon() + " " + displayName;
+        }
+
+        /**
+         * @return the lat
+         */
+        public double getLat() {
+            return lat;
+        }
+
+        /**
+         * @param lat the lat to set
+         */
+        public void setLat(double lat) {
+            this.lat = lat;
+        }
+
+        /**
+         * @return the lon
+         */
+        public double getLon() {
+            return lon;
+        }
+
+        /**
+         * @param lon the lon to set
+         */
+        public void setLon(double lon) {
+            this.lon = lon;
+        }
+
+        /**
+         * Set the OSM ID for the result object
+         * 
+         * @param id the OSM id
+         */
+        public void setOsmId(long id) {
+            osmId = id;
+        }
+
+        /**
+         * Get the OSM id of the object, -1 if not set
+         * 
+         * @return
+         */
+        public long getOsmId() {
+            return osmId;
+        }
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param activity activity calling this
+     * @param dialog the dialog used to get the input
+     * @param callback will be called when search result is selected
+     */
+    public Search(@NonNull AppCompatActivity activity, @Nullable Dialog dialog, @NonNull SearchItemSelectedCallback callback) {
+        this.activity = activity;
+        this.dialog = dialog;
+        this.callback = callback;
+    }
+
+    /**
+     * Query and then display a list of results to pick from
+     * 
+     * @param geocoder the geocoder to use for the querey
+     * @param q the query string
+     * @param bbox bounding box to limit the search to
+     * @param limitSearch if true limitSearch to bbox
+     */
+    public void find(@NonNull Geocoder geocoder, @NonNull String q, @Nullable ViewBox bbox, boolean limitSearch) {
+        final boolean multiline = geocoder.type == GeocoderType.PHOTON;
+        PostQueryHandler postQueryHandler = new PostQueryHandler() {
+            @Override
+            public void onSuccess(List<SearchResult> result) {
+                if (dialog != null) { // dismiss keyboard
+                    InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    Window window = dialog.getWindow();
+                    if (window != null) {
+                        imm.hideSoftInputFromWindow(window.getDecorView().getWindowToken(), 0);
+                    }
+                }
+                AppCompatDialog sr = createSearchResultsDialog(result, multiline ? R.layout.search_results_item_multi_line : R.layout.search_results_item);
+                sr.show();
+            }
+
+            @Override
+            public void onError() {
+                ScreenMessage.toastTopWarning(activity, R.string.toast_nothing_found);
+            }
+        };
+
+        switch (geocoder.type) {
+        case PHOTON:
+            new QueryPhoton(activity, geocoder.url, bbox, postQueryHandler).execute(q);
+            break;
+        case NOMINATIM:
+        default:
+            new QueryNominatim(activity, geocoder.url, bbox, limitSearch, postQueryHandler).execute(q);
+            break;
+        }
+    }
+
+    /**
+     * Create a Dialog with the results of a search
+     * 
+     * @param searchResults List containing the SearchResults
+     * @param itemLayout an Android resource id for the Layout
+     * @return a Dialog object
+     */
+    @SuppressLint("InflateParams")
+    private AppCompatDialog createSearchResultsDialog(@NonNull final List<SearchResult> searchResults, int itemLayout) {
+        //
+        Builder builder = ThemeUtils.getAlertDialogBuilder(activity);
+        builder.setTitle(R.string.search_results_title);
+        final LayoutInflater inflater = ThemeUtils.getLayoutInflater(activity);
+        View layout = inflater.inflate(R.layout.search_results, null);
+        builder.setView(layout);
+        ListView lv = layout.findViewById(R.id.search_results);
+        List<Spanned> ar = new ArrayList<>();
+        for (SearchResult sr : searchResults) {
+            ar.add(Util.fromHtml(sr.displayName));
+        }
+        final WidestItemArrayAdapter<Spanned> adapter = new WidestItemArrayAdapter<>(activity, itemLayout, ar);
+        lv.setAdapter(adapter);
+        lv.setSelection(0);
+        builder.setNegativeButton(R.string.cancel, null);
+        final AppCompatDialog resultsDialog = builder.create();
+        lv.setOnItemClickListener((parent, v, position, id) -> {
+            callback.onItemSelected(searchResults.get(position));
+            resultsDialog.dismiss();
+        });
+        return resultsDialog;
+    }
+}

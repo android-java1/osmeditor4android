@@ -1,0 +1,313 @@
+{
+"aeroway/gate":[
+"Kēti"
+],
+"amenity/atm":[
+"Pūrere Pūtea"
+],
+"amenity/bicycle_parking":[
+"Tūnga pahikara"
+],
+"amenity/bus_station":[
+"Teihana Pahi"
+],
+"amenity/car_rental":[
+"Ngā Tūnga Waka Rēti"
+],
+"amenity/cinema":[
+"Whare Pikitia"
+],
+"amenity/courthouse":[
+"Wharekōti"
+],
+"amenity/ferry_terminal":[
+"Taunga Waka Kōpiko"
+],
+"amenity/fire_station":[
+"Ratonga ahi"
+],
+"amenity/grave_yard":[
+"Urupā"
+],
+"amenity/ice_cream":[
+"Aihikirīmi toa"
+],
+"amenity/library":[
+"Whare pukapuka"
+],
+"amenity/mortuary":[
+"Whare tūpāpaku"
+],
+"amenity/motorcycle_parking":[
+"Tūnga motopaika"
+],
+"amenity/parking":[
+"Ngā Tūnga Waka"
+],
+"amenity/police":[
+"Pirihimana"
+],
+"amenity/recycling":[
+"Hangarua"
+],
+"amenity/recycling_centre":[
+"Taupuni Hangarua"
+],
+"amenity/recycling_container":[
+"Ipu Hangarua"
+],
+"amenity/theatre":[
+"Whare Tapere"
+],
+"amenity/toilets/disposal/pitlatrine":[
+"Hamuti"
+],
+"amenity/townhall":[
+"Hōro ā-Tāone"
+],
+"amenity/waste_basket":[
+"ipu para",
+"rāpihi"
+],
+"area":[
+"Pae"
+],
+"barrier/entrance":[
+"Kuhunga"
+],
+"building":[
+"Whare"
+],
+"building/church":[
+"Whare hāhi"
+],
+"building/fire_station":[
+"Whare ki ratonga ahi"
+],
+"building/industrial":[
+"Whare ahumahi"
+],
+"building_point":[
+"Whare"
+],
+"emergency/fire_alarm":[
+"Whakahoho"
+],
+"emergency/phone":[
+"Ngā ratonga mate whawhati tata"
+],
+"entrance":[
+"Putanga"
+],
+"entrance/emergency":[
+"Putanga Ohotata Anake"
+],
+"highway/bus_stop":[
+"Tūnga Pahi"
+],
+"highway/busway":[
+"Arapahi"
+],
+"highway/construction":[
+"Mahinga Rori"
+],
+"highway/cycleway":[
+"Ngā ara paihikara"
+],
+"highway/cycleway/bicycle_foot":[
+"Ngā Ara mō te Paihikara me te Hīkoi"
+],
+"highway/living_street":[
+"Ara Wātea"
+],
+"highway/motorway":[
+"Te Ara Whānui"
+],
+"highway/speed_camera":[
+"Kāmera inetere"
+],
+"landuse/cemetery":[
+"Urupā"
+],
+"landuse/construction":[
+"He Wāhi Whaihanga Tēnei"
+],
+"landuse/grass":[
+"Karaehe"
+],
+"landuse/harbour":[
+"Te Taunga"
+],
+"landuse/industrial":[
+"Papa ahumahi"
+],
+"landuse/landfill":[
+"maunga para"
+],
+"landuse/retail":[
+"Ngā Toa"
+],
+"leisure/fitness_station":[
+"Taputapu whakapakari tinana"
+],
+"leisure/park":[
+"Papa Rēhia"
+],
+"leisure/pitch":[
+"Papa hākinakina"
+],
+"leisure/pitch/badminton":[
+"Papa pūkura"
+],
+"leisure/pitch/basketball":[
+"Papa poitūkohu"
+],
+"leisure/pitch/beachvolleyball":[
+"Papa tātahi poirewa"
+],
+"leisure/pitch/netball":[
+"Poitarawhiti / Netipōro"
+],
+"leisure/pitch/rugby_league":[
+"Papa rīki"
+],
+"leisure/pitch/volleyball":[
+"Papa poirewa"
+],
+"leisure/playground":[
+"Papa tākaro"
+],
+"leisure/sports_centre":[
+"Pokapū hākinakina"
+],
+"leisure/swimming_pool":[
+"Hōpua"
+],
+"line":[
+"Ara"
+],
+"natural/beach":[
+"Tātahi"
+],
+"natural/coastline":[
+"Tapātai"
+],
+"natural/grassland":[
+"Papa karaehe"
+],
+"natural/hot_spring":[
+"Puia"
+],
+"natural/spring":[
+"Matatiki"
+],
+"natural/water/river":[
+"Papa wai awa"
+],
+"office":[
+"Tari"
+],
+"place/island":[
+"Motutere"
+],
+"place/town":[
+"Tāone"
+],
+"playground":[
+"Taputapu papa tākaro"
+],
+"point":[
+"Ira"
+],
+"power/generator/method/photovoltaic":[
+"Papa kōmaru"
+],
+"power/generator/method/photovoltaic/location/roof":[
+"Papa kōmaru ki tuanui"
+],
+"power/generator/source/wind":[
+"Pūrere kapohau"
+],
+"power/plant/source/wind":[
+"Te pāmu hau"
+],
+"public_transport/platform/bus_point":[
+"Tūnga Pahi"
+],
+"public_transport/station_bus":[
+"Teihana Pahi"
+],
+"public_transport/station_ferry":[
+"Taunga Waka Kōpiko"
+],
+"public_transport/station_train":[
+"Teihana Rerewē"
+],
+"public_transport/stop_position_ferry":[
+"Wāpu Waka Kōpiko"
+],
+"railway/station":[
+"Teihana Rerewē"
+],
+"railway/subway_entrance":[
+"Kuhunga ki teihana"
+],
+"shop":[
+"Toa"
+],
+"shop/bicycle":[
+"Pahikara toa"
+],
+"shop/candles":[
+"Kānara toa"
+],
+"shop/clothes":[
+"Toa hoko kākahu"
+],
+"shop/optician":[
+"Kaimātai whatu"
+],
+"shop/photo":[
+"Hopu whakaahua toa"
+],
+"tourism/camp_site":[
+"Puninga"
+],
+"tourism/hotel":[
+"Ngā Hōtera"
+],
+"tourism/information":[
+"Ngā Mōhiohio"
+],
+"tourism/information/guidepost":[
+"Kimihia Tō Ara"
+],
+"tourism/museum":[
+"whare taoka",
+"Whare tongarewa"
+],
+"tourism/viewpoint":[
+"Mātairangi"
+],
+"traffic_sign/maxspeed":[
+"Te pae tere"
+],
+"type/restriction/no_left_turn":[
+"Kāore huri mauī"
+],
+"type/restriction/no_right_turn":[
+"Kāore huri matau"
+],
+"type/restriction/only_left_turn":[
+"Huri mauī anake"
+],
+"type/restriction/only_right_turn":[
+"Huri matau anake"
+],
+"type/route/detour":[
+"Otinga"
+],
+"waterway/river":[
+"Awa"
+]
+}

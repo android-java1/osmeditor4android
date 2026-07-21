@@ -1,0 +1,119 @@
+{
+"amenity/arts_centre":[
+"Arts Centre"
+],
+"amenity/clinic/dialysis":[
+"Dialysis Centre"
+],
+"amenity/community_centre":[
+"Community Centre"
+],
+"amenity/community_centre/lgbtq":[
+"LGBTQ+ Community Centre"
+],
+"amenity/community_centre/youth_centre":[
+"Youth Centre"
+],
+"amenity/conference_centre":[
+"Convention Centre"
+],
+"amenity/dive_centre":[
+"Dive Centre"
+],
+"amenity/doctors/paediatrics":[
+"Paediatrician"
+],
+"amenity/exhibition_centre":[
+"Exposition Centre"
+],
+"amenity/parking":[
+"Parking Lot"
+],
+"amenity/payment_centre":[
+"Payment Centre"
+],
+"amenity/recycling_centre":[
+"Recycling Centre"
+],
+"amenity/social_facility/day_care":[
+"Social Services Day Care / Day Centre"
+],
+"amenity/telephone":[
+"Telephone"
+],
+"amenity/theatre/type/amphi":[
+"Amphitheatre"
+],
+"amenity/toilets":[
+"Washroom"
+],
+"building/grandstand":[
+"Grandstand"
+],
+"cycleway/asl":[
+"Bike Box"
+],
+"highway/footway/crossing":[
+"Crosswalk"
+],
+"highway/footway/crossing/uncontrolled":[
+"Marked Crosswalk"
+],
+"highway/footway/crossing/unmarked":[
+"Unmarked Crosswalk"
+],
+"highway/footway/informal":[
+"Informal Foot Path"
+],
+"highway/tertiary_link":[
+"Tertiary Link"
+],
+"leisure/bleachers":[
+"Bleachers"
+],
+"leisure/fitness_centre":[
+"Gym / Fitness Centre"
+],
+"office/union":[
+"Labour Union Office"
+],
+"place/neighbourhood":[
+"Neighbourhood"
+],
+"public_transport/platform/bus_tram_point":[
+"Streetcar & Bus Stop"
+],
+"public_transport/platform/tram":[
+"Streetcar Platform"
+],
+"public_transport/platform/tram_point":[
+"Streetcar Stop / Platform"
+],
+"public_transport/station_tram":[
+"Streetcar Station"
+],
+"public_transport/stop_position_tram":[
+"Streetcar Stopping Location"
+],
+"railway/tram":[
+"Streetcar Track"
+],
+"railway/tram_crossing":[
+"Streetcar-Path Crossing"
+],
+"railway/tram_level_crossing":[
+"Streetcar-Road Crossing"
+],
+"railway/tram_stop":[
+"Streetcar Stopping Position"
+],
+"telecom/data_center":[
+"Data Centre"
+],
+"tourism/information/visitor_centre":[
+"Visitor Centre"
+],
+"type/route/tram":[
+"Streetcar Route"
+]
+}

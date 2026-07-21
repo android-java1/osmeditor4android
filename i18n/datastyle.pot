@@ -1,0 +1,47 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2026-01-20 19:50+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+#:
+msgid "Built-in (minimal)"
+msgstr ""
+
+#:
+msgid "Color Round Nodes"
+msgstr ""
+
+#:
+msgid "Default style for phone sized devices"
+msgstr "
+
+#: 
+msgid "Color Round Nodes No Multipolygons"
+msgstr ""
+
+#:
+msgid "Style for phone sized devices without multipolygon rendering"
+msgstr "
+
+#: 
+msgid "Pen Round Nodes"
+msgstr ""
+
+#:
+msgid "Style for tablett sized devices used with a pen or mouse"
+msgstr "
+
+#:
+msgid "No path patterns"
+msgstr "
+
+#:
+msgid "Style for Android 8.0 and earlier"
+msgstr "

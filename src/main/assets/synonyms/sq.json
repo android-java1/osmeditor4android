@@ -1,0 +1,119 @@
+{
+"address":[
+"Adresa"
+],
+"amenity/atm":[
+"Bankomat"
+],
+"amenity/bench":[
+"Stol"
+],
+"amenity/bus_station":[
+"Stacioni i Autobusave"
+],
+"area":[
+"Sipërfaqja"
+],
+"boundary/administrative":[
+"Kufi Administrativ"
+],
+"building":[
+"Ndërtesa"
+],
+"building/college":[
+"Ndërtesa e Kollegjit"
+],
+"building_point":[
+"Ndërtesa"
+],
+"highway/cycleway":[
+"Rrugë biçikletash"
+],
+"highway/elevator":[
+"Ashensor"
+],
+"highway/footway":[
+"Rrugë këmbësorësh"
+],
+"highway/secondary":[
+"Rrugë Dytësore"
+],
+"line":[
+"Vijë"
+],
+"natural/water":[
+"Ujë"
+],
+"place/city":[
+"Qytet"
+],
+"place/square":[
+"Katror"
+],
+"point":[
+"Pikë"
+],
+"power/transformer":[
+"Transformator"
+],
+"public_transport/station_bus":[
+"Stacioni i Autobusave"
+],
+"railway/abandoned":[
+"Hekurudhë E Braktisur"
+],
+"relation":[
+"Lidhje"
+],
+"shop":[
+"Dyqan"
+],
+"shop/bakery":[
+"Furrë buke"
+],
+"shop/clothes":[
+"Dyqan Veshjesh"
+],
+"shop/copyshop":[
+"Fotokopje"
+],
+"shop/dry_cleaning":[
+"Pastrim Kimik"
+],
+"shop/kiosk":[
+"Kioskë"
+],
+"shop/kitchen":[
+"Dyqan për Aredim të Kuzhinës"
+],
+"shop/laundry":[
+"Lavanderi"
+],
+"shop/optician":[
+"Okulist"
+],
+"shop/supermarket":[
+"Supermarket"
+],
+"tourism/hotel":[
+"Hotel"
+],
+"tourism/information":[
+"Informacion"
+],
+"tourism/information/map":[
+"Hartë"
+],
+"type/boundary/administrative":[
+"Kufi Administrativ"
+],
+"waterway/canal":[
+"Kanal"
+],
+"waterway/river":[
+"Lumë"
+],
+"waterway/waterfall":[
+"Ujëvarë"
+]
+}

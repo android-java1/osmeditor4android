@@ -1,0 +1,689 @@
+{
+"address":[
+"پتہ"
+],
+"aeroway/aerodrome":[
+"ائیرپورت",
+"ہوائی اڈہ",
+"ائیر پورت",
+"ہوائی اڈا",
+"ائرپورٹ"
+],
+"amenity":[
+"سہولت"
+],
+"amenity/atm":[
+"اے ٹی ایم"
+],
+"amenity/bank":[
+"بینک"
+],
+"amenity/bar":[
+"بار"
+],
+"amenity/bench":[
+"بینچ",
+"نشست",
+"بنچ"
+],
+"amenity/bus_station":[
+"بس اسٹیشن"
+],
+"amenity/casino":[
+"جوا خانہ",
+"قمار خانہ",
+"جوئے خانہ"
+],
+"amenity/cinema":[
+"سنیمہ"
+],
+"amenity/clock":[
+"گھڑی"
+],
+"amenity/courthouse":[
+"عدالت"
+],
+"amenity/doctors":[
+"ڈاکٹر"
+],
+"amenity/drinking_water":[
+"پینا",
+"پانی",
+"پینے والا پانی"
+],
+"amenity/embassy":[
+"صفارت خانہ"
+],
+"amenity/fountain":[
+"چشمہ"
+],
+"amenity/grave_yard":[
+"قبرستان"
+],
+"amenity/hospital":[
+"اسپتال رقبہ",
+"ہسپتال رقبہ",
+"بیمارستان رقبہ"
+],
+"amenity/library":[
+"کتاب گھر"
+],
+"amenity/marketplace":[
+"سوق",
+"بازار"
+],
+"amenity/place_of_worship":[
+"عبادت خانہ",
+"عبادت گاہ"
+],
+"amenity/place_of_worship/christian":[
+"عیسائی گرجا",
+"گرجا",
+"مسیحی گرجا"
+],
+"amenity/place_of_worship/hindu":[
+"مندر",
+"ہندو عبادت گاہ",
+"ہندو مندر"
+],
+"amenity/place_of_worship/jewish":[
+"یہودی عبادت گاہ",
+"یہودی مسجد"
+],
+"amenity/place_of_worship/muslim":[
+"مسجد",
+"امام بارگاہ",
+"امام باڑہ"
+],
+"amenity/place_of_worship/sikh":[
+"گوردوارہ",
+"سکھ عبادت گاہ",
+"گرودوارہ"
+],
+"amenity/place_of_worship/taoist":[
+"تاؤ مندر"
+],
+"amenity/police":[
+"پلیس"
+],
+"amenity/post_office":[
+"ڈاک گھر",
+"ڈاک خانہ"
+],
+"amenity/restaurant":[
+"ڈھابا",
+"ریستوراں",
+"ہوٹل",
+"ریسٹورانٹ",
+"ڈھابہ",
+"طعام گاہ"
+],
+"amenity/shelter":[
+"پناہ گاہ"
+],
+"amenity/studio/television":[
+"ٹیلی ویژن سٹیشن",
+"نشر گاہ",
+"ٹیلی ویژن نشر گاہ",
+"ٹیلی ویژن اسٹیشن"
+],
+"amenity/telephone":[
+"ٹیلی فون"
+],
+"area":[
+"خانہ"
+],
+"barrier/ditch":[
+"کھائی",
+"خندق"
+],
+"barrier/fence":[
+"جنگلا",
+"حصار",
+"باڑ",
+"باڑھ",
+"جنگلہ"
+],
+"barrier/toll_booth":[
+"ٹول پلازہ"
+],
+"barrier/wall":[
+"دیوار"
+],
+"boundary":[
+"حدود"
+],
+"boundary/administrative":[
+"انتظامی سرحد",
+"انتظامی حدود"
+],
+"building":[
+"عمارت"
+],
+"building/bungalow":[
+"بنگلہ"
+],
+"building/church":[
+"گرجا گھر"
+],
+"building/college":[
+"کالج عمارت"
+],
+"building/construction":[
+"زیر تعمیر عمارت",
+"عمارت زیر تعمیر"
+],
+"building/hospital":[
+"ہسپتال عمارت"
+],
+"building/house":[
+"گھر"
+],
+"building/hut":[
+"جھونپڑی",
+"تھگلی",
+"جھگی"
+],
+"building/industrial":[
+"صنعتی عمارت"
+],
+"building/mosque":[
+"مسجد عمارت"
+],
+"building/office":[
+"دفاتر عمارت",
+"دفتر",
+"دفاتر"
+],
+"building/residential":[
+"مسکونہ",
+"اقامت گاہ",
+"رہائشی عمارت",
+"سکونت"
+],
+"building/retail":[
+"کاروبار"
+],
+"building/roof":[
+"چھت"
+],
+"building/school":[
+"اسکول عمارت"
+],
+"building/stable":[
+"استبل",
+"اسطبل"
+],
+"building/synagogue":[
+"یہودی مسجد"
+],
+"building/train_station":[
+"ریل اڈہ عمارت"
+],
+"building_point":[
+"عمارت"
+],
+"cemetery/grave":[
+"قبر"
+],
+"craft/blacksmith":[
+"لوہار"
+],
+"craft/carpenter":[
+"بڑھئی"
+],
+"craft/gardener":[
+"مالی"
+],
+"craft/shoemaker":[
+"موچی"
+],
+"craft/tailor":[
+"درزی"
+],
+"ford":[
+"معمر",
+"گھاٹ"
+],
+"ford_line":[
+"گھاٹ"
+],
+"highway/construction":[
+"بند سڑک",
+"زیر تعمیر سڑک",
+"سڑک زیر تعمیر"
+],
+"highway/footway":[
+"پیدل رستہ",
+"پیدل راستہ"
+],
+"highway/motorway":[
+"موٹروے"
+],
+"highway/path":[
+"راستہ"
+],
+"highway/path/informal":[
+"کچا راستہ"
+],
+"highway/residential":[
+"رہائشی سڑک",
+"رہائش پذیر سڑک",
+"محلہ جاتی سڑک",
+"رہائشی گلی",
+"گلی"
+],
+"highway/speed_camera":[
+"کیمرہ برائے رفتار"
+],
+"highway/steps":[
+"سیڑھی",
+"سیڑھیاں"
+],
+"highway/traffic_signals":[
+"ٹریفک اشارے"
+],
+"highway/trunk":[
+"شاہراہ",
+"جرنیلی سڑک",
+"بڑی سڑک",
+"عظیم شاہراہ"
+],
+"historic":[
+"تاریخی مقام"
+],
+"historic/castle":[
+"قلعہ"
+],
+"historic/castle/palace":[
+"محل"
+],
+"historic/castle/stately":[
+"شاتو"
+],
+"historic/city_gate":[
+"شہر کا دروازہ"
+],
+"historic/memorial":[
+"یادگار",
+"یاد گار"
+],
+"historic/ruins":[
+"کھنڈرات"
+],
+"historic/tomb":[
+"مقبرہ"
+],
+"junction":[
+"جنکشن",
+"چوک"
+],
+"landuse/cemetery":[
+"قبرستان"
+],
+"landuse/farm":[
+"کھیت"
+],
+"landuse/farmland":[
+"کھیت"
+],
+"landuse/grass":[
+"گھاس"
+],
+"landuse/industrial":[
+"صنعتی علاقہ"
+],
+"landuse/meadow":[
+"چرا گاہ",
+"وادی",
+"سبزہ زار"
+],
+"landuse/railway":[
+"ریلوے راہداری",
+"ریل راہداری"
+],
+"landuse/religious":[
+"عبادت خانہ",
+"مقدس زمین"
+],
+"landuse/residential":[
+"رہائشی علاقہ"
+],
+"landuse/retail":[
+"کاروباری علاقہ"
+],
+"leisure/garden":[
+"باغ"
+],
+"leisure/garden/residential":[
+"رہائشی باغ"
+],
+"leisure/park":[
+"پارک"
+],
+"leisure/pitch/cricket":[
+"کریکٹ میدان",
+"کرکٹ میدان"
+],
+"leisure/stadium":[
+"اسٹیڈیم"
+],
+"line":[
+"لکیر"
+],
+"man_made/chimney":[
+"چمنی"
+],
+"man_made/tower":[
+"برج"
+],
+"man_made/tower/minaret":[
+"مینار",
+"مینارت"
+],
+"man_made/water_well":[
+"پانی کا کنوا"
+],
+"natural/beach":[
+"ساحل",
+"ریتیلا ساحل"
+],
+"natural/cliff":[
+"چٹان"
+],
+"natural/coastline":[
+"ساحل"
+],
+"natural/mud":[
+"کیچڑ"
+],
+"natural/sand":[
+"ریت"
+],
+"natural/tree":[
+"درخت"
+],
+"natural/valley":[
+"وادی"
+],
+"natural/water":[
+"پانی"
+],
+"natural/water/lake":[
+"جھیل"
+],
+"office":[
+"دفتر"
+],
+"office/administrative":[
+"انتظامی دفتر"
+],
+"office/diplomatic/embassy":[
+"صفارت خانہ"
+],
+"office/educational_institution":[
+"تعلیمی ادارہ"
+],
+"office/financial":[
+"مالی دفتر"
+],
+"office/government":[
+"سرکاری دفتر"
+],
+"office/insurance":[
+"بیمہ دفتر"
+],
+"office/lawyer":[
+"قانونی دفتر"
+],
+"office/political_party":[
+"دفتر برائے سیاسی جماعت",
+"سیاسی جماعت کا دفتر"
+],
+"office/religion":[
+"دینی دفتر"
+],
+"office/travel_agent":[
+"ٹریول ایجنسی"
+],
+"office/yes":[
+"دفتر (نامعلوم)"
+],
+"place":[
+"جگہ"
+],
+"place/city":[
+"شہر"
+],
+"place/farm":[
+"کھیت"
+],
+"place/hamlet":[
+"بستی"
+],
+"place/island":[
+"جزیرہ"
+],
+"place/neighbourhood":[
+"پڑوس",
+"محلہ"
+],
+"place/plot":[
+"زمین"
+],
+"place/suburb":[
+"مضافت"
+],
+"place/town":[
+"بستی",
+"قصبہ"
+],
+"place/village":[
+"گرام",
+"دہ",
+"دیہات",
+"بستی",
+"گاؤں"
+],
+"playground/swing":[
+"جھولا"
+],
+"point":[
+"مقام"
+],
+"power/substation":[
+"بجلی گھر",
+"چھوٹا بجلی گھر"
+],
+"public_transport/platform/bus":[
+"چبوترہ",
+"بس چبوترہ",
+"بس پلیٹفارم"
+],
+"public_transport/platform/train":[
+"چبوترہ",
+"ریل چبوترہ",
+"ٹرین چبوترہ",
+"ٹرین پلیٹفارم"
+],
+"public_transport/platform/tram":[
+"چبوترہ",
+"ٹرام چبوترہ",
+"ٹرام پلیٹفارم"
+],
+"public_transport/station_bus":[
+"بس اڈہ"
+],
+"public_transport/station_train":[
+"ٹرین اسٹیشن",
+"ریل اڈہ"
+],
+"public_transport/station_tram":[
+"ٹرام اڈہ",
+"ٹرام اسٹیشن",
+"ٹرام اڈا"
+],
+"railway/construction":[
+"ریلوے زیر تعمیر",
+"زیر تعمیر ریلوے"
+],
+"railway/platform":[
+"ریل چبوترہ"
+],
+"railway/rail":[
+"ریل پٹری",
+"پٹری",
+"ٹرین پٹری"
+],
+"railway/station":[
+"ریل اڈہ"
+],
+"relation":[
+"تعلق"
+],
+"shop":[
+"دکان"
+],
+"shop/butcher":[
+"قصائی",
+"قسائی"
+],
+"shop/florist":[
+"گل فروش",
+"گل فروش کی دوکان",
+"گل فروش کی دکان"
+],
+"shop/hairdresser/barber":[
+"نائی",
+"حجام",
+"باربر"
+],
+"shop/mall":[
+"مال"
+],
+"shop/religion":[
+"مذہبی دوکان",
+"مذہبی دکان"
+],
+"shop/tailor":[
+"درزی"
+],
+"shop/travel_agency":[
+"ٹریول ایجنسی"
+],
+"shop/weapons":[
+"بندوقوں والی دکان",
+"بندوق کی دکان",
+"بندوق کی دوکان",
+"بندوقوں کی دکان",
+"بندوق والی دکان"
+],
+"tourism/artwork/sculpture":[
+"مجسمہ"
+],
+"tourism/artwork/statue":[
+"مجسمہ"
+],
+"tourism/attraction":[
+"سیاحتی مقام"
+],
+"tourism/hotel":[
+"ہوٹل"
+],
+"tourism/information/map":[
+"نقشہ"
+],
+"tourism/museum":[
+"عجائب گھر"
+],
+"tourism/zoo":[
+"چڑیا گھر"
+],
+"traffic_sign":[
+"اشارہ"
+],
+"traffic_sign/maxspeed":[
+"حدِ رفتار اشارہ",
+"حد رفتار اشارہ"
+],
+"type/boundary":[
+"حدود"
+],
+"type/boundary/administrative":[
+"انتظامی سرحد",
+"انتظامی حدود"
+],
+"type/enforcement":[
+"قانونی",
+"نفاذ",
+"قانون",
+"نافذ،نفاذ قانون"
+],
+"type/route":[
+"راہ"
+],
+"type/route/bicycle":[
+"سائکل کا راہ",
+"سائکل کا راستہ"
+],
+"type/route/bus":[
+"بس کا راستہ"
+],
+"type/route/foot":[
+"پیدل راستہ"
+],
+"type/route/railway":[
+"ریلوے راہ",
+"ریل گاڑی کا راہ",
+"ریل گاڑی کا راستہ",
+"ریل راستہ"
+],
+"type/route/road":[
+"سڑک راستہ"
+],
+"type/route/tram":[
+"ٹرام کا راستہ"
+],
+"type/site":[
+"جگہ",
+"مقام",
+"حصہ"
+],
+"type/waterway":[
+"آبِ راہ",
+"آبی راستہ",
+"آب راہ"
+],
+"waterway/canal":[
+"نہر"
+],
+"waterway/dam":[
+"ڈیم"
+],
+"waterway/ditch":[
+"نالا",
+"نالی",
+"کھائی",
+"خندق",
+"نالہ"
+],
+"waterway/drain":[
+"نالا",
+"نالی",
+"نالہ"
+],
+"waterway/river":[
+"دریا",
+"ندی",
+"نہر"
+],
+"waterway/stream":[
+"نالا",
+"دھارا"
+],
+"waterway/stream_intermittent":[
+"رواں نالا",
+"رواں دھارا",
+"رواں پانی"
+]
+}
