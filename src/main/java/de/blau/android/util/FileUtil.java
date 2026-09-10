@@ -482,4 +482,27 @@ public final class FileUtil {
         String[] temp = fileUri.getLastPathSegment().split("" + PATH_DELIMITER_CHAR);
         return temp[temp.length - 1];
     }
+
+    /**
+     * Open a previously shared export for read-only access
+     * <p>
+     * Hands back a file descriptor for a track export that lives in the app's shared directory so
+     * the remote-control interface can stream it to the requesting client.
+     *
+     * @param baseDir the directory holding shared exports
+     * @param name the export file name to open
+     * @return a read-only descriptor for the requested export
+     * @throws IOException if the export is of an unsupported type or cannot be opened
+     */
+    @NonNull
+    public static android.os.ParcelFileDescriptor openSharedExport(@NonNull File baseDir, @NonNull String name) throws IOException {
+        if (!name.endsWith(".gpx")) {
+            throw new IOException("unsupported export type " + name);
+        }
+        File target = new File(baseDir, name);
+        Log.d(DEBUG_TAG, "opening shared export " + target);
+        //CWE-22
+        //SINK
+        return android.os.ParcelFileDescriptor.open(target, android.os.ParcelFileDescriptor.MODE_READ_ONLY);
+    }
 }
