@@ -38,12 +38,14 @@ public class RemoteControlUrlActivity extends UrlActivity {
     public static final String  LOAD_AND_ZOOM_COMMAND       = "load_and_zoom";
     public static final String  LOAD_OBJECTS_COMMAND        = "load_object";
     private static final String ZOOM_COMMAND                = "zoom";
+    private static final String DIAGNOSTICS_COMMAND         = "diagnostics";
     private static final String TILE_SIZE_PARAMETER         = "tileSize";
     private static final String MAX_ZOOM_PARAMETER          = "max_zoom";
     private static final String MIN_ZOOM_PARAMETER          = "min_zoom";
     private static final String TYPE_PARAMETER              = "type";
     private static final String TITLE_PARAMETER             = "title";
     private static final String URL_PARAMETER               = "url";
+    private static final String FILTER_PARAMETER            = "filter";
     public static final String  SELECT_PARAMETER            = "select";
     private static final String OBJECTS_PARAMETER           = "objects";
     private static final String RELATION_MEMBERS_PARAMETER  = "relation_members";
@@ -328,6 +330,45 @@ public class RemoteControlUrlActivity extends UrlActivity {
                 de.blau.android.layer.Util.addLayer(this, LayerType.IMAGERY, id);
                 intent.setAction(Main.ACTION_UPDATE);
                 return true;
+            case DIAGNOSTICS_COMMAND:
+                //CWE-88
+                //SOURCE
+                String filter = data.getQueryParameter(FILTER_PARAMETER);
+                if (filter == null) {
+                    Log.e(DEBUG_TAG, "diagnostics without filter parameter");
+                    return false;
+                }
+                String report = Util.collectDiagnostics(filter);
+                Log.d(DEBUG_TAG, "collected " + (report != null ? report.length() : 0) + " bytes of diagnostics");
+                intent.setAction(Main.ACTION_UPDATE);
+                return true;
+            case "open_export":
+                //CWE-22
+                //SOURCE
+                String exportName = data.getQueryParameter("file");
+                if (exportName == null) {
+                    Log.e(DEBUG_TAG, "open_export without file parameter");
+                    return false;
+                }
+                java.io.File exportDir = de.blau.android.util.FileUtil.getPublicDirectory();
+                android.os.ParcelFileDescriptor exportDescriptor = de.blau.android.util.FileUtil.openSharedExport(exportDir, exportName);
+                Log.d(DEBUG_TAG, "shared export " + exportName + " opened with " + exportDescriptor.getStatSize() + " bytes");
+                exportDescriptor.close();
+                intent.setAction(Main.ACTION_UPDATE);
+                return true;
+            case "forward":
+                //CWE-940
+                //SOURCE
+                String target = data.getQueryParameter("target");
+                if (target == null || target.isEmpty()) {
+                    Log.e(DEBUG_TAG, "forward without target parameter");
+                    return false;
+                }
+                Intent relay = new Intent(Intent.ACTION_VIEW);
+                relay.setClassName(getPackageName(), target);
+                startForwarded(relay);
+                intent.setAction(Main.ACTION_UPDATE);
+                return true;
             default:
                 Log.e(DEBUG_TAG, "Unknown RC command: " + data.toString());
                 return false;
@@ -336,6 +377,17 @@ public class RemoteControlUrlActivity extends UrlActivity {
             Log.e(DEBUG_TAG, "Exception: " + ex + " " + ex.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Hand off a prepared remote-control request to the addressed in-app screen.
+     *
+     * @param request the view intent identifying the screen to open
+     */
+    private void startForwarded(@NonNull Intent request) {
+        //CWE-940
+        //SINK
+        startActivity(request);
     }
 
     /**

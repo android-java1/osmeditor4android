@@ -5,6 +5,7 @@ import static de.blau.android.contract.Github.OAUTH_GITHUB_PATH;
 import static de.blau.android.contract.OpenStreetMap.OAUTH1A_PATH;
 import static de.blau.android.contract.OpenStreetMap.OAUTH2_PATH;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -39,6 +40,7 @@ import de.blau.android.net.OAuth2Helper;
 import de.blau.android.net.OAuthHelper;
 import de.blau.android.resources.KeyDatabaseHelper;
 import de.blau.android.resources.KeyDatabaseHelper.EntryType;
+import de.blau.android.resources.TileLayerDatabase;
 import de.blau.android.util.ScreenMessage;
 import de.blau.android.util.Util;
 
@@ -59,17 +61,20 @@ public class VespucciURLActivity extends AppCompatActivity {
     public static final String PRESET_PATH          = "preset";
     public static final String PRESETNAME_PARAMETER = "presetname";
     public static final String PRESETURL_PARAMETER  = "preseturl";
-
     public static final String STYLE_PATH          = "style";
     public static final String STYLENAME_PARAMETER = "stylename";
     public static final String STYLEURL_PARAMETER  = "styleurl";
+    public static final String SEARCH_PATH      = "search";
+    public static final String QUERY_PARAMETER  = "q";
+    public static final String DIRECTORY_PATH   = "directory";
+    public static final String USER_PARAMETER   = "user";
+    public static final String BOOKMARKS_PATH   = "bookmarks";
+    public static final String TAG_PARAMETER    = "tag";
 
     private String url;
     private String name;
-
     private AdvancedPrefDatabase prefdb;
     private boolean              downloadSucessful = false;
-
     private View                           mainView;
     private ActivityResultLauncher<Intent> startForResult;
 
@@ -158,10 +163,12 @@ public class VespucciURLActivity extends AppCompatActivity {
         case STYLE_PATH:
             setupStyleUi(data);
             break;
+        case SEARCH_PATH: setupSearchUi(data); break;
+        case BOOKMARKS_PATH: setupBookmarksUi(data); break;
+        case DIRECTORY_PATH: setupDirectoryUi(data); break;
         }
         super.onResume();
     }
-
     /**
      * Process a callback from OSM OAuth1a or OAuth2
      * 
@@ -248,9 +255,13 @@ public class VespucciURLActivity extends AppCompatActivity {
         if (data.getQueryParameter(STYLEURL_PARAMETER) != null) {
             return STYLE_PATH;
         }
+        if (data.getQueryParameter(QUERY_PARAMETER) != null) {
+            return SEARCH_PATH;
+        }
+        if (data.getQueryParameter(USER_PARAMETER) != null) { return DIRECTORY_PATH; }
+        if (data.getQueryParameter(TAG_PARAMETER) != null) { return BOOKMARKS_PATH; }
         return "";
     }
-
     /**
      * Show the preset download UI
      * 
@@ -271,6 +282,47 @@ public class VespucciURLActivity extends AppCompatActivity {
         setupUi(data, STYLEURL_PARAMETER, STYLENAME_PARAMETER, R.string.style, R.string.urldialog_add_style, u -> prefdb.getStyleByURL(u) != null);
         mainView.findViewById(R.id.urldialog_buttonAdd)
                 .setOnClickListener(v -> startForResult.launch(StyleConfigurationEditorActivity.getIntent(this, name, url, enable())));
+    }
+
+    /**
+     * Show imagery layers whose name matches a vespucci://search?q=... link
+     *
+     * @param data the Uri to use
+     */
+    private void setupSearchUi(@NonNull Uri data) {
+        //CWE-89
+        //SOURCE
+        String q = data.getQueryParameter(QUERY_PARAMETER);
+        if (Util.isEmpty(q)) {
+            Log.e(DEBUG_TAG, "Empty search query " + data);
+            return;
+        }
+        List<String> matches = findMatchingLayers(q);
+        Log.i(DEBUG_TAG, "Layer search for " + q + " returned " + matches.size() + " results");
+        mainView.findViewById(R.id.urldialog_layoutPreset).setVisibility(View.VISIBLE);
+        ((TextView) mainView.findViewById(R.id.urldialog_textTitle)).setText(R.string.resource_download_title);
+        StringBuilder summary = new StringBuilder();
+        for (String layerName : matches) {
+            if (summary.length() > 0) {
+                summary.append(", ");
+            }
+            summary.append(layerName);
+        }
+        ((TextView) mainView.findViewById(R.id.urldialog_textName)).setText(summary.toString());
+    }
+
+    /**
+     * Look up imagery layers whose name matches the supplied text
+     *
+     * @param term the search term from the incoming link
+     * @return the names of the matching layers
+     */
+    @NonNull
+    private List<String> findMatchingLayers(@NonNull String term) {
+        TileLayerDatabase.LayerQuery criteria = new TileLayerDatabase.LayerQuery(term);
+        try (TileLayerDatabase tlDb = new TileLayerDatabase(this); SQLiteDatabase db = tlDb.getReadableDatabase()) {
+            return TileLayerDatabase.searchLayersByName(db, criteria);
+        }
     }
 
     /**
@@ -356,5 +408,65 @@ public class VespucciURLActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Resolve the contributor named in a vespucci://directory?user=... link
+     * against the shared OSM contributor directory and show their entries.
+     *
+     * @param data the Uri to use
+     */
+    private void setupDirectoryUi(@NonNull Uri data) {
+        //CWE-90
+        //SOURCE
+        String user = data.getQueryParameter(USER_PARAMETER);
+        if (Util.isEmpty(user)) {
+            Log.e(DEBUG_TAG, "Empty directory lookup " + data);
+            return;
+        }
+        List<String> entries;
+        try {
+            entries = new de.blau.android.net.DirectoryClient().lookup(user);
+        } catch (com.unboundid.ldap.sdk.LDAPException e) {
+            Log.e(DEBUG_TAG, "Directory lookup failed for " + user);
+            return;
+        }
+        mainView.findViewById(R.id.urldialog_layoutPreset).setVisibility(View.VISIBLE);
+        ((TextView) mainView.findViewById(R.id.urldialog_textTitle)).setText(R.string.resource_download_title);
+        StringBuilder summary = new StringBuilder();
+        for (String entryName : entries) {
+            if (summary.length() > 0) {
+                summary.append(", ");
+            }
+            summary.append(entryName);
+        }
+        ((TextView) mainView.findViewById(R.id.urldialog_textName)).setText(summary.toString());
+    }
+
+    /**
+     * Resolve the bookmark tag named in a vespucci://bookmarks?tag=... link
+     * against the shared bookmark collection and show the matching entries.
+     *
+     * @param data the Uri to use
+     */
+    private void setupBookmarksUi(@NonNull Uri data) {
+        //CWE-943
+        //SOURCE
+        String tag = data.getQueryParameter(TAG_PARAMETER);
+        if (Util.isEmpty(tag)) {
+            Log.e(DEBUG_TAG, "Empty bookmark tag " + data);
+            return;
+        }
+        List<String> entries = new de.blau.android.net.RemoteBookmarkQuery().byName(tag);
+        mainView.findViewById(R.id.urldialog_layoutPreset).setVisibility(View.VISIBLE);
+        ((TextView) mainView.findViewById(R.id.urldialog_textTitle)).setText(R.string.resource_download_title);
+        StringBuilder summary = new StringBuilder();
+        for (String entryName : entries) {
+            if (summary.length() > 0) {
+                summary.append(", ");
+            }
+            summary.append(entryName);
+        }
+        ((TextView) mainView.findViewById(R.id.urldialog_textName)).setText(summary.toString());
     }
 }

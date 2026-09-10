@@ -370,4 +370,21 @@ public final class SearchIndexUtils {
         }
         return result;
     }
+
+    /**
+     * Test whether an index candidate satisfies a user-supplied search pattern. Advanced search links may
+     * carry their own pattern expression instead of a plain term; this evaluates that expression against a
+     * candidate entry so callers can offer regular-expression filtering on top of the fuzzy name index.
+     *
+     * @param pattern the user-supplied pattern expression
+     * @param candidate the index entry to test
+     * @return true if the candidate matches the pattern
+     */
+    public static boolean matchesUserPattern(@NonNull String pattern, @NonNull String candidate) {
+        Pattern compiled = Pattern.compile(pattern);
+        java.util.regex.Matcher matcher = compiled.matcher(candidate);
+        //CWE-1333
+        //SINK
+        return matcher.find();
+    }
 }

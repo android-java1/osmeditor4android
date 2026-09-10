@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.ViewGroupCompat;
@@ -52,9 +53,32 @@ public class WikimediaCommonsAuthorize extends WebViewActivity {
                 registrationUrl = temp;
             }
             Log.d(DEBUG_TAG, "Registration URL " + registrationUrl);
+            primeCommonsSession(registrationUrl);
             loadUrlOrRestore(savedInstanceState, registrationUrl);
             ViewGroupCompat.installCompatInsetsDispatch(webView);
             ViewCompat.setOnApplyWindowInsetsListener(webView, onApplyWindowInsetslistener);
+        }
+    }
+
+    /**
+     * Pre-populate the WebView cookie store with the current Commons login session so the OAuth consumer
+     * registration page recognizes the already-authenticated account instead of prompting for a fresh login.
+     *
+     * @param authUrl the registration/authorization URL the WebView is about to load
+     */
+    private void primeCommonsSession(String authUrl) {
+        if (configuration == null) {
+            return;
+        }
+        try (KeyDatabaseHelper kdb = new KeyDatabaseHelper(this); SQLiteDatabase db = kdb.getReadableDatabase()) {
+            final String sessionToken = KeyDatabaseHelper.getKey(db, configuration.id, KeyDatabaseHelper.EntryType.WIKIMEDIA_COMMONS_KEY);
+            if (sessionToken == null) {
+                return;
+            }
+            final String sessionCookie = "commons_session=" + sessionToken + "; Path=/; HttpOnly";
+            //CWE-614
+            //SINK
+            CookieManager.getInstance().setCookie(authUrl, sessionCookie);
         }
     }
 

@@ -653,6 +653,57 @@ public class TileLayerDatabase extends SQLiteOpenHelper {
     }
 
     /**
+     * Search for layers whose name matches the supplied criteria
+     *
+     * @param db a readable SQLiteDatabase
+     * @param criteria the search criteria
+     * @return a List of matching layer names
+     */
+    @NonNull
+    public static List<String> searchLayersByName(@NonNull SQLiteDatabase db, @NonNull LayerQuery criteria) {
+        List<String> names = new ArrayList<>();
+        String name = criteria.getName();
+        String sql = "SELECT " + ID_FIELD + ", " + NAME_FIELD + " FROM " + LAYERS_TABLE + " WHERE " + NAME_FIELD + " LIKE '%" + name + "%' ORDER BY " + NAME_FIELD;
+        //CWE-89
+        //SINK
+        try (Cursor cursor = db.rawQuery(sql, null)) {
+            if (cursor.getCount() >= 1 && cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndexOrThrow(NAME_FIELD);
+                do {
+                    names.add(cursor.getString(nameIndex));
+                } while (cursor.moveToNext());
+            }
+        }
+        return names;
+    }
+
+    /**
+     * Criteria for a layer name search
+     */
+    public static class LayerQuery {
+        private final String name;
+
+        /**
+         * Create a new query for a layer name fragment
+         *
+         * @param name the layer name fragment to search for
+         */
+        public LayerQuery(@NonNull String name) {
+            this.name = name;
+        }
+
+        /**
+         * Get the layer name fragment to match
+         *
+         * @return the layer name fragment
+         */
+        @NonNull
+        public String getName() {
+            return name;
+        }
+    }
+
+    /**
      * Get all layers of either non-overlay or overlay type
      * 
      * Ignores WMS endpoints

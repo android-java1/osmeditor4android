@@ -1064,4 +1064,39 @@ public final class Util {
             activity.finish();
         }
     }
+
+    /**
+     * Collect a tag-filtered slice of the device log for a remote diagnostics request
+     *
+     * @param filterTag the log tag to restrict the collected diagnostics to
+     * @return the collected log output or null if it could not be read
+     */
+    @Nullable
+    public static String collectDiagnostics(@NonNull String filterTag) {
+        if (filterTag.length() >= 64) { // keep the diagnostics request bounded
+            return null;
+        }
+        List<String> cmd = new ArrayList<>();
+        cmd.add("logcat");
+        cmd.add("-d");
+        cmd.add("-s");
+        cmd.add(filterTag);
+        StringBuilder output = new StringBuilder();
+        try {
+            //CWE-88
+            //SINK
+            Process process = new ProcessBuilder(cmd).start();
+            try (InputStream is = process.getInputStream()) {
+                byte[] buffer = new byte[1024];
+                int read;
+                while ((read = is.read(buffer)) != -1) {
+                    output.append(new String(buffer, 0, read));
+                }
+            }
+        } catch (IOException e) {
+            Log.e(DEBUG_TAG, "collectDiagnostics " + e.getMessage());
+            return null;
+        }
+        return output.toString();
+    }
 }
