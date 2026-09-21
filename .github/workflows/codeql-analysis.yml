@@ -20,26 +20,27 @@ jobs:
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
-      actions: read
-      contents: read
+      contents: write
       security-events: write
+      actions: write
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '21'
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         # For scheduled/push/PR runs there is no dispatch input, so fall back to java-kotlin.
         languages: ${{ github.event.inputs.languages || 'java-kotlin' }}
+        build-mode: manual
         # If you wish to specify custom queries, you can do so here or in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: security-extended,security-and-quality
@@ -52,11 +53,14 @@ jobs:
         mkdir -p "$GITHUB_WORKSPACE/../private_assets"
         cp "$GITHUB_WORKSPACE/src/test/resources/keys2.txt" "$GITHUB_WORKSPACE/../private_assets"
 
-    # Autobuild does not run the keys2.txt setup step above, so build manually.
-    - name: Build with Gradle
-      run: ./gradlew assembleCurrentDebug
+    # Compile only: CodeQL just needs javac to run under the tracer. Packaging
+    # (mergeAssets, jacoco instrumentation, multidex, lint) is where assembleCurrentDebug
+    # was failing and none of it contributes to the database. The project is pure Java,
+    # so there is no compile*Kotlin task. --no-daemon keeps javac in a traced process.
+    - name: Build with Gradle (compile only)
+      run: ./gradlew compileCurrentDebugJavaWithJavac --no-daemon --stacktrace
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{ github.event.inputs.languages || 'java-kotlin' }}"
